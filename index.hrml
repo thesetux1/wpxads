@@ -1,1 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+ 
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title> Spin & Win</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+:root{
+  --black:#080810;
+  --ink:#0d0d1a;
+  --navy:#10102a;
+  --gold:#c9910a;
+  --gold-lt:#f5c842;
+  --gold-dk:#7a5800;
+  --red:#d42b2b;
+  --red-lt:#ff4444;
+  --white:#ffffff;
+  --off:#e8e0cc;
+  --dim:rgba(232,224,204,.6);
+  --glass:rgba(255,255,255,.05);
+  --glass-b:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--black);min-height:100vh;overflow-x:hidden;color:var(--white)}
+
+/* ── BG ── */
+.bg-layer{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(201,145,10,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 40% at 80% 80%, rgba(212,43,43,.1) 0%, transparent 50%),
+    linear-gradient(180deg,#080810 0%,#0d0d1a 100%);
+}
+/* Stadium light beams */
+.bg-layer::before{
+  content:'';position:absolute;inset:0;
+  background:
+    conic-gradient(from 250deg at 20% -5%, transparent 0deg, rgba(245,200,66,.06) 8deg, transparent 16deg),
+    conic-gradient(from 280deg at 80% -5%, transparent 0deg, rgba(245,200,66,.05) 10deg, transparent 18deg);
+}
+/* Subtle noise texture */
+.bg-layer::after{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+
+/* ── SCREENS ── */
+.screen{display:none}
+.screen.active{display:flex}
+
+/* ══════════════════════════════════════════════
+   SCREEN 1 — ONBOARDING
+══════════════════════════════════════════════ */
+#screen-quiz{
+  position:fixed;inset:0;z-index:100;overflow-y:auto;
+  flex-direction:column;align-items:center;
+  padding:0 0 48px;
+}
+#screen-quiz.active{display:flex}
+
+/* ── HERO BANNER ── */
+.ob-hero{
+  width:100%;
+  background:linear-gradient(170deg,#0d0d1a 0%,#13132e 50%,#0d0d1a 100%);
+  border-bottom:2px solid var(--gold);
+  padding:28px 20px 24px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+/* Gold diagonal stripe */
+.ob-hero::before{
+  content:'';position:absolute;
+  top:-40px;left:-10%;width:120%;height:4px;
+  background:linear-gradient(90deg,transparent,var(--gold-lt),transparent);
+  transform:rotate(-1deg);
+  box-shadow:0 0 30px rgba(245,200,66,.5);
+}
+/* BIG "26" WATERMARK */
+.ob-hero::after{
+  content:'26';
+  font-family:'Bebas Neue',sans-serif;
+  font-size:320px;line-height:1;
+  position:absolute;right:-20px;top:-30px;
+  color:rgba(255,255,255,.025);
+  letter-spacing:-.05em;pointer-events:none;
+}
+.ob-live-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--red);
+  color:#fff;font-size:10px;font-weight:800;letter-spacing:.2em;
+  padding:4px 12px;border-radius:4px;margin-bottom:14px;
+  text-transform:uppercase;
+}
+.ob-live-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.ob-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(38px,10vw,72px);
+  line-height:.9;color:var(--white);
+  letter-spacing:.06em;
+  text-shadow:0 2px 20px rgba(0,0,0,.8);
+  margin-bottom:2px;
+}
+.ob-title span{
+  color:transparent;
+  background:linear-gradient(90deg,var(--gold-lt),var(--gold));
+  -webkit-background-clip:text;background-clip:text;
+}
+.ob-subtitle{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(16px,4vw,24px);font-weight:700;
+  color:var(--off);letter-spacing:.15em;text-transform:uppercase;
+  margin-bottom:16px;
+}
+.ob-hosts{
+  display:inline-flex;align-items:center;gap:14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;padding:8px 18px;margin-bottom:20px;
+  font-size:13px;font-weight:700;color:var(--off);
+  letter-spacing:.06em;
+}
+.ob-hosts .hflag{font-size:18px}
+.ob-hosts .hdot{color:rgba(255,255,255,.25)}
+
+/* ── STATS ROW ── */
+.ob-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;overflow:hidden;
+  margin:0 auto 20px;max-width:460px;width:100%;
+}
+.ob-stat{
+  background:rgba(255,255,255,.04);
+  padding:14px 8px;text-align:center;
+}
+.ob-stat-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;color:var(--gold-lt);letter-spacing:.05em;line-height:1;
+}
+.ob-stat-lbl{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+
+/* ── PRIZE GRID ── */
+.ob-prizes-heading{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold-lt);margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.ob-prizes-heading::before,.ob-prizes-heading::after{content:'';flex:1;height:1px;background:rgba(245,200,66,.25)}
+.ob-prize-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;max-width:460px;width:100%;margin:0 auto 20px;
+  padding:0 2px;
+}
+.ob-prize-card{
+  background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:12px 8px;text-align:center;
+  transition:transform .15s;
+  position:relative;overflow:hidden;
+}
+.ob-prize-card::before{
+  content:'';position:absolute;inset:0;border-radius:14px;
+  background:linear-gradient(135deg,rgba(245,200,66,.08),transparent);
+  opacity:0;transition:opacity .15s;
+}
+.ob-prize-card:hover{transform:translateY(-2px)}
+.ob-prize-card:hover::before{opacity:1}
+.ob-prize-card.top{border-color:rgba(245,200,66,.4);background:linear-gradient(160deg,rgba(245,200,66,.12),rgba(255,255,255,.03))}
+.ob-prize-img{
+  width:56px;height:56px;object-fit:contain;
+  background:rgba(255,255,255,.92);
+  border-radius:10px;padding:5px;margin:0 auto 8px;display:block;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.ob-prize-amt{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:17px;color:var(--gold-lt);letter-spacing:.04em;line-height:1;
+}
+.ob-prize-sub{font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+/* ── CTA SECTION ── */
+.ob-cta-wrap{
+  max-width:460px;width:100%;margin:0 auto;padding:0 4px;
+  text-align:center;margin-bottom:6px;
+}
+.ob-cta-headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(22px,6vw,34px);color:var(--white);letter-spacing:.08em;
+  margin-bottom:6px;
+}
+.ob-cta-sub{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:18px}
+
+/* ── QUIZ CARD ── */
+.quiz-wrap{max-width:460px;width:100%;padding:0 4px}
+.quiz-card{
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.14);
+  border-top:2px solid var(--gold);
+  border-radius:18px;padding:26px 22px;
+}
+.quiz-round-label{
+  display:flex;align-items:center;gap:8px;
+  font-size:10px;font-weight:800;letter-spacing:.22em;color:var(--gold-lt);
+  text-transform:uppercase;margin-bottom:16px;
+}
+.quiz-round-label::after{content:'';flex:1;height:1px;background:rgba(245,200,66,.2)}
+.quiz-step{display:none}
+.quiz-step.active{display:block;animation:fadeIn .3s ease}
+.quiz-question{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:800;color:var(--white);
+  margin-bottom:18px;line-height:1.25;letter-spacing:.02em;
+}
+.quiz-options{display:flex;gap:10px}
+.quiz-btn{
+  flex:1;padding:14px 16px;border-radius:10px;border:none;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:17px;font-weight:800;letter-spacing:.06em;
+  cursor:pointer;transition:transform .12s,box-shadow .12s;
+}
+.quiz-btn--yes{
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold));
+  color:var(--black);
+  box-shadow:0 4px 16px rgba(201,145,10,.4);
+}
+.quiz-btn--no{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);color:var(--white);
+}
+.quiz-btn:hover{transform:scale(1.04)}
+.quiz-btn:active{transform:scale(.96)}
+.quiz-progress{display:flex;justify-content:center;gap:8px;margin-top:20px}
+.q-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);transition:.3s}
+.q-dot--active{background:var(--gold-lt);box-shadow:0 0 8px var(--gold-lt)}
+
+/* ══════════════════════════════════════════════
+   SCREEN 2 — SPIN GAME
+══════════════════════════════════════════════ */
+#screen-game{
+  flex-direction:column;align-items:center;
+  padding:28px 16px 48px;min-height:100vh;
+  position:relative;z-index:1;
+}
+.game-header{text-align:center;margin-bottom:22px;width:100%;max-width:540px}
+.game-eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold-lt);margin-bottom:8px;
+}
+.game-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(42px,10vw,68px);
+  line-height:.9;letter-spacing:.08em;color:var(--white);
+  text-shadow:0 2px 20px rgba(0,0,0,.6);
+}
+.game-title span{
+  color:transparent;background:linear-gradient(90deg,var(--gold-lt),var(--gold));
+  -webkit-background-clip:text;background-clip:text;
+}
+.game-sub{font-size:13px;color:var(--dim);margin-top:8px}
+.game-sub strong{color:var(--gold-lt)}
+.spin-dots{display:inline-flex;gap:8px;margin-top:10px}
+.spin-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:.3s}
+.spin-dot.active{background:var(--gold-lt);box-shadow:0 0 10px var(--gold-lt)}
+
+/* Wheel */
+.wheel-wrap{position:relative;width:min(94vw,540px);aspect-ratio:1}
+.wheel-pointer{position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:20}
+.wheel-ring{
+  position:absolute;inset:0;border-radius:50%;padding:16px;
+  background:conic-gradient(from 0deg,var(--gold-lt),var(--gold),#fff8dc,var(--gold-dk),var(--gold-lt));
+  box-shadow:0 20px 60px rgba(0,0,0,.7),inset 0 0 0 5px rgba(0,0,0,.5),0 0 60px rgba(201,145,10,.2);
+}
+.wheel-el{
+  width:100%;height:100%;border-radius:50%;overflow:hidden;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.6);transform:rotate(0deg);
+}
+.wheel-el.spinning{transition:transform 5s cubic-bezier(0.17,0.67,0.16,0.99)}
+.wheel-el svg{width:100%;height:100%;display:block}
+.wheel-hub{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:17%;height:17%;border-radius:50%;z-index:10;
+  background:radial-gradient(circle at 30% 30%,#fff8dc,var(--gold) 60%,var(--gold-dk));
+  box-shadow:0 4px 16px rgba(0,0,0,.6),inset 0 -3px 6px rgba(0,0,0,.3),0 0 20px rgba(245,200,66,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--gold-dk);letter-spacing:.1em;
+}
+
+.spin-controls{margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.spin-btn{
+  padding:16px 52px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.14em;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:var(--black);
+  box-shadow:0 8px 30px rgba(201,145,10,.4),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.2);
+  transition:transform .1s;
+}
+.spin-btn:hover{transform:scale(1.03)}
+.spin-btn:active{transform:scale(.96)}
+.spin-btn:disabled{opacity:.4;cursor:not-allowed}
+.spin-result{
+  text-align:center;padding:12px 28px;border-radius:12px;
+  background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(8px);
+}
+.spin-result .sr-label{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:var(--gold-lt)}
+.spin-result .sr-val{font-size:18px;font-weight:800;color:var(--white);margin-top:4px}
+.btn-link{background:none;border:none;color:var(--dim);text-decoration:underline;cursor:pointer;font-size:13px}
+.btn-link:hover{color:var(--white)}
+.hidden{display:none!important}
+
+/* Modal */
+.modal{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(14px);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  animation:fadeIn .3s ease;
+}
+.modal-card{
+  width:100%;max-width:400px;border-radius:24px;overflow:hidden;
+  background:var(--ink);border:2px solid rgba(201,145,10,.5);
+  box-shadow:0 32px 80px rgba(0,0,0,.8),0 0 60px rgba(201,145,10,.15);
+  animation:scaleIn .4s ease;
+}
+.modal-top{
+  background:linear-gradient(160deg,#1c1408 0%,#0d0d1a 100%);
+  padding:26px 24px 20px;text-align:center;
+  border-bottom:1px solid rgba(201,145,10,.2);position:relative;overflow:hidden;
+}
+.modal-top::after{
+  content:'WC 2026';font-family:'Bebas Neue',sans-serif;font-size:100px;
+  position:absolute;right:-10px;bottom:-20px;color:rgba(255,255,255,.025);letter-spacing:.05em;pointer-events:none;
+}
+.modal-trophy{font-size:44px;line-height:1;margin-bottom:8px;animation:bounce .8s ease-in-out infinite alternate}
+.modal-congrats{font-size:10px;letter-spacing:.3em;font-weight:800;color:var(--gold-lt);text-transform:uppercase;margin-bottom:4px}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--white);letter-spacing:.1em}
+.modal-body{padding:22px 24px;text-align:center}
+.m-prize-wrap{
+  margin:0 auto 14px;width:130px;height:130px;border-radius:16px;
+  background:var(--white);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 28px rgba(0,0,0,.5),0 0 30px rgba(201,145,10,.2);
+  animation:pulse 2s ease-in-out infinite;
+}
+.m-prize-wrap img{max-width:88%;max-height:88%;object-fit:contain}
+.m-prize-label{font-family:'Bebas Neue',sans-serif;font-size:clamp(26px,7vw,42px);color:var(--gold-lt);letter-spacing:.05em;line-height:1;margin-bottom:4px;text-shadow:0 2px 12px rgba(201,145,10,.4)}
+.m-prize-sub{font-size:13px;font-weight:600;color:var(--dim);margin-bottom:20px}
+.m-claim-btn{
+  display:block;width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.12em;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:var(--black);
+  box-shadow:0 8px 24px rgba(201,145,10,.4),inset 0 1px 0 rgba(255,255,255,.5);
+  animation:pulse 1.5s ease-in-out infinite;transition:transform .12s;
+}
+.m-claim-btn:hover{transform:scale(1.03)}
+.m-claim-btn:active{transform:scale(.96)}
+
+/* ══════════════════════════════════════════════
+   SCREEN 3 — CLAIM
+══════════════════════════════════════════════ */
+#screen-claim{
+  flex-direction:column;align-items:center;
+  padding:28px 16px 48px;min-height:100vh;position:relative;z-index:1;
+}
+.claim-prize-banner{
+  width:100%;max-width:480px;
+  display:flex;align-items:center;gap:14px;
+  background:linear-gradient(135deg,rgba(201,145,10,.15),rgba(255,255,255,.04));
+  border:1.5px solid rgba(201,145,10,.45);
+  border-radius:18px;padding:14px 18px;margin-bottom:18px;
+  box-shadow:0 8px 30px rgba(0,0,0,.4),0 0 30px rgba(201,145,10,.1);
+  animation:scaleIn .4s ease;
+}
+.cpb-img{flex-shrink:0;width:66px;height:66px;border-radius:12px;background:var(--white);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);animation:pulse 2s ease-in-out infinite}
+.cpb-img img{max-width:85%;max-height:85%;object-fit:contain}
+.cpb-info{flex:1;min-width:0}
+.cpb-tag{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-lt);margin-bottom:3px}
+.cpb-name{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--white);letter-spacing:.05em;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpb-sub{font-size:12px;color:var(--dim);margin-top:2px}
+.claim-header{text-align:center;margin-bottom:18px}
+.claim-header h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,7vw,44px);color:var(--white);letter-spacing:.1em;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.claim-header p{font-size:13px;color:var(--dim);margin-top:4px}
+.claim-header strong{color:var(--gold-lt)}
+.claim-card{
+  width:100%;max-width:480px;
+  background:rgba(255,255,255,.055);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);border-top:2px solid var(--gold);
+  border-radius:18px;padding:24px 20px;animation:fadeIn .4s ease;
+}
+.claim-steps{list-style:none;padding:0;margin:0 0 18px;display:flex;flex-direction:column;gap:12px}
+.claim-steps li{display:flex;align-items:flex-start;gap:12px;font-size:13px;line-height:1.6;color:rgba(255,255,255,.8)}
+.step-badge{flex-shrink:0;width:24px;height:24px;border-radius:6px;background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:var(--black);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+.claim-divider{border:none;border-top:1px solid rgba(255,255,255,.08);margin:18px 0}
+.share-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:15px 20px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;
+  background:linear-gradient(180deg,#25d366,#128c3e);color:#fff;
+  box-shadow:0 8px 24px rgba(18,140,62,.35),inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .1s;margin-bottom:18px;
+}
+.share-btn:hover{transform:scale(1.02)}
+.share-btn:active{transform:scale(.97)}
+.bar-title{font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-lt);margin-bottom:8px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-track{flex:1;height:24px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:3px;overflow:hidden}
+.bar-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#25d366,var(--gold-lt));box-shadow:0 0 12px rgba(201,145,10,.4);transition:width .6s ease}
+.bar-pct{width:46px;text-align:center;font-size:14px;font-weight:800;color:var(--white);flex-shrink:0}
+.done-section{display:none;text-align:center;animation:scaleIn .4s ease}
+.done-icon{font-size:60px;line-height:1;margin-bottom:10px;filter:drop-shadow(0 4px 16px rgba(201,145,10,.6))}
+.done-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--white);letter-spacing:.1em;margin-bottom:6px}
+.done-sub{font-size:13px;color:var(--dim);margin-bottom:22px}
+.done-btn{
+  display:block;width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:var(--black);
+  box-shadow:0 8px 24px rgba(201,145,10,.4),inset 0 1px 0 rgba(255,255,255,.5);
+  animation:pulse 1.5s ease-in-out infinite;transition:transform .1s;
+}
+.done-btn:hover{transform:scale(1.02)}
+.done-btn:active{transform:scale(.97)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn    {from{opacity:0}to{opacity:1}}
+@keyframes scaleIn   {from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse     {0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes bounce    {from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes tickScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+
+<script>
+const PRIZES=[
+  {label:"₦500,000", sub:"Cash Prize",     img:"assets/prize-cash-500k.png", col:"dark",  isPrize:true},
+  {label:"₦200,000", sub:"Instant Winner", img:"assets/prize-cash-200k.png", col:"light", isPrize:true},
+  {label:"₦50,000",  sub:"Lucky Spin",     img:"assets/prize-cash-50k.png",  col:"dark",  isPrize:true},
+  {label:"₦10,000",  sub:"Airtime",        img:"assets/prize-airtime.png",   col:"light", isPrize:true},
+  {label:"Free Data",sub:"MTN & Airtel",   img:"assets/prize-data.png",      col:"dark",  isPrize:true},
+  {label:"iPhone 17",sub:"Pro Max",        img:"assets/prize-iphone.png",    col:"red",   isPrize:true},
+  {label:"Bonus",    sub:"Spin Again",     img:"",                           col:"extra", isPrize:false, icon:"🔄"},
+  {label:"Try Again",sub:"",              img:"",                           col:"extra2",isPrize:false, icon:"⚽"},
+];
+</script>
+
+<!-- ══════════════════════════
+     SCREEN 1 · ONBOARDING
+══════════════════════════ -->
+<div id="screen-quiz" class="screen active">
+
+  <!-- ── HERO BANNER ── -->
+  <div class="ob-hero">
+    <div class="ob-live-badge">
+      <span class="ob-live-dot"></span>
+      LIVE GIVEAWAY
+    </div>
+
+    <h1 class="ob-title">FIFA WORLD CUP<br><span>2026 SPIN &amp; WIN</span></h1>
+    <p class="ob-subtitle">Official Fan Reward Programme</p>
+
+    <div class="ob-hosts">
+      <span class="hflag">🇺🇸</span> USA
+      <span class="hdot">·</span>
+      <span class="hflag">🇨🇦</span> CANADA
+      <span class="hdot">·</span>
+      <span class="hflag">🇲🇽</span> MEXICO
+    </div>
+
+    <!-- Tournament stats -->
+    <div class="ob-stats">
+      <div class="ob-stat">
+        <div class="ob-stat-num">48</div>
+        <div class="ob-stat-lbl">Teams</div>
+      </div>
+      <div class="ob-stat">
+        <div class="ob-stat-num">16</div>
+        <div class="ob-stat-lbl">Host Cities</div>
+      </div>
+      <div class="ob-stat">
+        <div class="ob-stat-num">104</div>
+        <div class="ob-stat-lbl">Matches</div>
+      </div>
+    </div>
+
+    <!-- Prize grid heading -->
+    <div class="ob-prizes-heading">Win These Prizes</div>
+
+    <!-- Prize cards grid -->
+    <div class="ob-prize-grid" id="prizeGrid"></div>
+
+  </div>
+
+  <!-- ── CTA + QUIZ ── -->
+  <div style="width:100%;max-width:460px;padding:24px 16px 0;">
+
+    <div style="text-align:center;margin-bottom:20px">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,6vw,34px);letter-spacing:.08em;color:var(--white);margin-bottom:6px">
+        🏆 YOU'VE BEEN SELECTED!
+      </h2>
+      <p style="font-size:13px;color:var(--dim);line-height:1.65">
+        As part of our exclusive <strong style="color:var(--gold-lt)">World Cup 2026 Fan Reward</strong>, you have a chance to win cash, phones and more. Answer 3 quick qualification questions to unlock your free spin.
+      </p>
+    </div>
+
+    <!-- How it works -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px">
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 8px;text-align:center">
+        <div style="font-size:22px;margin-bottom:4px">✅</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold-lt);letter-spacing:.06em;text-transform:uppercase">Answer</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:2px">3 questions</div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 8px;text-align:center">
+        <div style="font-size:22px;margin-bottom:4px">🎡</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold-lt);letter-spacing:.06em;text-transform:uppercase">Spin</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:2px">3 times</div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 8px;text-align:center">
+        <div style="font-size:22px;margin-bottom:4px">💰</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold-lt);letter-spacing:.06em;text-transform:uppercase">Claim</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:2px">your prize</div>
+      </div>
+    </div>
+
+    <!-- Quiz card -->
+    <div class="quiz-wrap">
+      <div class="quiz-card">
+        <div class="quiz-round-label">⚽ Qualification Round</div>
+
+        <div class="quiz-step active" id="q1">
+          <p class="quiz-question">Are you Nigerian?</p>
+          <div class="quiz-options">
+            <button class="quiz-btn quiz-btn--yes" onclick="answerQuestion(1,'yes')">✅ Yes</button>
+            <button class="quiz-btn quiz-btn--no"  onclick="answerQuestion(1,'no')">❌ No</button>
+          </div>
+        </div>
+
+        <div class="quiz-step" id="q2">
+          <p class="quiz-question">Are you older than 18?</p>
+          <div class="quiz-options">
+            <button class="quiz-btn quiz-btn--yes" onclick="answerQuestion(2,'yes')">✅ Yes</button>
+            <button class="quiz-btn quiz-btn--no"  onclick="answerQuestion(2,'no')">❌ No</button>
+          </div>
+        </div>
+
+        <div class="quiz-step" id="q3">
+          <p class="quiz-question">Are you a football fan?</p>
+          <div class="quiz-options">
+            <button class="quiz-btn quiz-btn--yes" onclick="answerQuestion(3,'yes')">✅ Yes</button>
+            <button class="quiz-btn quiz-btn--no"  onclick="answerQuestion(3,'no')">❌ No</button>
+          </div>
+        </div>
+
+        <div class="quiz-progress">
+          <span class="q-dot q-dot--active" id="qd1"></span>
+          <span class="q-dot" id="qd2"></span>
+          <span class="q-dot" id="qd3"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust bar -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px;padding:12px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.08)">
+      <span style="font-size:18px">🔒</span>
+      <span style="font-size:11px;color:var(--dim);line-height:1.4">100% Free · No purchase required · Limited time offer</span>
+      <span style="font-size:18px">⚽</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════
+     SCREEN 2 · SPIN GAME
+══════════════════════════ -->
+<div id="screen-game" class="screen">
+
+  <div class="game-header">
+    <p class="game-eyebrow">⚽ FIFA World Cup 2026 — Official Giveaway</p>
+    <div class="game-title">SPIN &amp; <span>WIN</span></div>
+    <p class="game-sub">Spin <strong>3 times</strong> to reveal your prize</p>
+    <div class="spin-dots">
+      <span class="spin-dot" id="dot0"></span>
+      <span class="spin-dot" id="dot1"></span>
+      <span class="spin-dot" id="dot2"></span>
+    </div>
+  </div>
+
+  <div class="wheel-wrap">
+    <div class="wheel-pointer">
+      <svg width="40" height="52" viewBox="0 0 40 52">
+        <defs>
+          <linearGradient id="ptrG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f5c842"/>
+            <stop offset="1" stop-color="#8a6800"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 50 L3 8 Q20 -1 37 8 Z" fill="url(#ptrG)" stroke="#2a1800" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="wheel-ring">
+      <div class="wheel-el" id="wheelEl">
+        <svg viewBox="0 0 520 520" id="wheelSvg"></svg>
+      </div>
+      <div class="wheel-hub">26</div>
+    </div>
+  </div>
+
+  <div class="spin-controls">
+    <button id="spinBtn" class="spin-btn">⚽ SPIN (0/3)</button>
+    <div id="spinResult" class="spin-result hidden"></div>
+    <button id="resetBtn" class="btn-link hidden">Play again</button>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-top">
+        <div class="modal-trophy">🏆</div>
+        <p class="modal-congrats">🎉 Congratulations — You Won!</p>
+        <h2 class="modal-title">WORLD CUP WINNER</h2>
+      </div>
+      <div class="modal-body">
+        <div class="m-prize-wrap"><img id="mPrizeImg" alt=""/></div>
+        <p class="m-prize-label" id="mPrizeLabel"></p>
+        <p class="m-prize-sub" id="mPrizeSub"></p>
+        <button id="claimBtn" class="m-claim-btn">🎁 CLAIM YOUR PRIZE</button>
+        <button id="modalReset" class="btn-link" style="margin-top:14px;display:block">Play again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     SCREEN 3 · CLAIM
+══════════════════════════ -->
+<div id="screen-claim" class="screen">
+
+  <div class="claim-prize-banner" id="claimBanner" style="display:none">
+    <div class="cpb-img"><img id="cpbImg" alt=""/></div>
+    <div class="cpb-info">
+      <p class="cpb-tag">🏆 Your Prize</p>
+      <p class="cpb-name" id="cpbName"></p>
+      <p class="cpb-sub" id="cpbSub"></p>
+    </div>
+  </div>
+
+  <div class="claim-header">
+    <h1>🎁 CLAIM YOUR PRIZE</h1>
+    <p>Share to unlock your <strong>₦250,000</strong> reward</p>
+  </div>
+
+  <div class="claim-card">
+    <div id="tfShare">
+      <ul class="claim-steps">
+        <li><span class="step-badge">1</span><span>Share to <strong>5 WhatsApp groups</strong> or <strong>15 friends</strong> using the button below.</span></li>
+        <li><span class="step-badge">2</span><span>Registration completes automatically once the progress bar is full.</span></li>
+        <li><span class="step-badge">3</span><span>You'll receive confirmation via call/SMS on your registered SIM.</span></li>
+      </ul>
+      <hr class="claim-divider">
+      <button class="share-btn" id="tfWhatsapp">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="#fff">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.858L.057 23.571a.75.75 0 0 0 .921.921l5.704-1.476A11.953 11.953 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.907 0-3.7-.524-5.228-1.432l-.374-.224-3.384.875.894-3.272-.244-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+        </svg>
+        SHARE ON WHATSAPP
+      </button>
+      <p class="bar-title">Verification Progress</p>
+      <div class="bar-row">
+        <div class="bar-track"><div class="bar-fill" id="tfFill"></div></div>
+        <div class="bar-pct"><span id="tfPct">0%</span></div>
+      </div>
+    </div>
+    <div class="done-section" id="tfClaim">
+      <div class="done-icon">✅</div>
+      <p class="done-title">REGISTRATION COMPLETE!</p>
+      <p class="done-sub">An kammala rijistar ku. Congratulations!</p>
+      <button class="done-btn" id="tfOffer">🎁 COLLECT PRIZE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const KEYS={screen:'wc_screen',step:'wc_quiz_step',spins:'wc_spins',won:'wc_won',wonIdx:'wc_won_idx',rot:'wc_rot',claim:'wc_claim',exp:'wc_exp'};
+const EXPIRY_MS=12*60*60*1000;
+function clearAll(){Object.values(KEYS).forEach(k=>localStorage.removeItem(k))}
+function checkExp(){const e=localStorage.getItem(KEYS.exp);if(e&&Date.now()>parseInt(e)){clearAll();return true}return false}
+function save(k,v){if(!localStorage.getItem(KEYS.exp))localStorage.setItem(KEYS.exp,String(Date.now()+EXPIRY_MS));localStorage.setItem(k,String(v))}
+function load(k){return localStorage.getItem(k)}
+
+// ── SCREENS ──
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');save(KEYS.screen,id)}
+
+// ── PRIZE GRID (onboarding) ──
+function buildPrizeGrid(){
+  const grid=document.getElementById('prizeGrid');
+  if(!grid)return;
+  const items=PRIZES.filter(p=>p.img);
+  grid.innerHTML=items.map((p,i)=>`
+    <div class="ob-prize-card${i===0?' top':''}">
+      <img class="ob-prize-img" src="${p.img}" alt="${p.label}">
+      <div class="ob-prize-amt">${p.label}</div>
+      <div class="ob-prize-sub">${p.sub}</div>
+    </div>`).join('');
+}
+
+// ── QUIZ ──
+function restoreQuiz(step){for(let i=1;i<=3;i++){document.getElementById('q'+i).classList.toggle('active',i===step);document.getElementById('qd'+i).classList.toggle('q-dot--active',i<=step)}}
+function answerQuestion(qNum,answer){
+  if(qNum<3){const next=qNum+1;document.getElementById('q'+qNum).classList.remove('active');document.getElementById('q'+next).classList.add('active');document.getElementById('qd'+next).classList.add('q-dot--active');save(KEYS.step,next)}
+  else{save(KEYS.step,3);showScreen('game');buildWheel()}
+}
+
+// ── WHEEL ──
+const SEG=PRIZES,SEG_N=SEG.length,SEG_ANG=360/SEG_N,R=250,CX=260,CY=260;
+function segFill(c){if(c==='dark')return '#0d1a2e';if(c==='red')return '#4a0808';if(c==='extra')return '#1a0d2e';if(c==='extra2')return '#2e1a08';return '#c9910a'}
+function segText(c){return c==='light'?'#1a0d00':'#ffffff'}
+function buildWheel(){
+  const svg=document.getElementById('wheelSvg');let html='';
+  SEG.forEach((seg,i)=>{
+    const sA=i*SEG_ANG-90,eA=sA+SEG_ANG,sR=sA*Math.PI/180,eR=eA*Math.PI/180;
+    const x1=CX+R*Math.cos(sR),y1=CY+R*Math.sin(sR),x2=CX+R*Math.cos(eR),y2=CY+R*Math.sin(eR);
+    const path=`M ${CX} ${CY} L ${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2} Z`;
+    const mA=sA+SEG_ANG/2,mR=mA*Math.PI/180,tr=R*0.62,tx=CX+tr*Math.cos(mR),ty=CY+tr*Math.sin(mR);
+    const fill=segFill(seg.col),tc=segText(seg.col),fs=seg.label.length>8?14:18;
+    html+=`<g><path d="${path}" fill="${fill}" stroke="rgba(0,0,0,.35)" stroke-width="2"/>
+    <g transform="translate(${tx} ${ty}) rotate(${mA+90})">
+      <text text-anchor="middle" y="-12" style="fill:${tc};font-weight:900;font-size:${fs}px;font-family:Bebas Neue,sans-serif;letter-spacing:.05em">${seg.label}</text>
+      ${seg.sub?`<text text-anchor="middle" y="4" style="fill:${tc};opacity:.75;font-size:11px;font-family:Inter,sans-serif;font-weight:600">${seg.sub}</text>`:''}
+      ${seg.img?`<image href="${seg.img}" x="-38" y="16" width="76" height="76" preserveAspectRatio="xMidYMid meet"/>`:''}
+      ${seg.icon?`<text text-anchor="middle" y="44" style="font-size:32px">${seg.icon}</text>`:''}
+    </g></g>`;
+  });
+  svg.innerHTML=html;
+}
+let rotation=0,spinning=false,spinCount=0,won=false;
+function updateDots(){for(let i=0;i<3;i++)document.getElementById('dot'+i).classList.toggle('active',i<spinCount)}
+function fireConfetti(){
+  const end=Date.now()+3500,cols=['#f5c842','#c9910a','#ffffff','#d42b2b','#27ae60'];
+  (function f(){confetti({particleCount:5,angle:60,spread:70,origin:{x:0},colors:cols});confetti({particleCount:5,angle:120,spread:70,origin:{x:1},colors:cols});if(Date.now()<end)requestAnimationFrame(f)})();
+  confetti({particleCount:180,spread:130,origin:{y:0.6},colors:cols});
+}
+function showResult(seg,isWin){
+  const el=document.getElementById('spinResult');el.classList.remove('hidden');
+  el.innerHTML=`<div class="sr-label">${isWin?'🏆 Final Prize':'Spin '+spinCount+' result'}</div><div class="sr-val">${seg.label}${seg.sub?' — '+seg.sub:''}</div>`;
+}
+function showModal(seg){
+  document.getElementById('mPrizeImg').src=seg.img||'';
+  document.getElementById('mPrizeLabel').textContent=seg.label;
+  const sub=document.getElementById('mPrizeSub');
+  seg.sub?(sub.textContent=seg.sub,sub.style.display='block'):sub.style.display='none';
+  document.getElementById('modal').classList.remove('hidden');
+}
+function spin(){
+  if(spinning||won)return;
+  const next=spinCount+1,winning=next>=3;
+  let idx;
+  if(winning){const prz=SEG.map((s,i)=>({s,i})).filter(x=>x.s.isPrize);idx=prz[Math.floor(Math.random()*prz.length)].i}
+  else{const non=SEG.map((s,i)=>({s,i})).filter(x=>!x.s.isPrize);idx=non[Math.floor(Math.random()*non.length)].i}
+  const sc=idx*SEG_ANG+SEG_ANG/2,base=6*360,cur=((rotation%360)+360)%360,tgt=(360-sc+360)%360,delta=(tgt-cur+360)%360;
+  rotation=rotation+base+delta;spinning=true;
+  document.getElementById('spinResult').classList.add('hidden');
+  const el=document.getElementById('wheelEl');el.classList.add('spinning');el.style.transform=`rotate(${rotation}deg)`;
+  const btn=document.getElementById('spinBtn');btn.disabled=true;btn.textContent='⚽ SPINNING...';
+  setTimeout(()=>{
+    spinning=false;spinCount=next;save(KEYS.spins,spinCount);save(KEYS.rot,rotation);updateDots();
+    const seg=SEG[idx];
+    if(winning&&seg.isPrize){won=true;save(KEYS.won,'true');save(KEYS.wonIdx,idx);btn.textContent='🏆 YOU WON!';showResult(seg,true);document.getElementById('resetBtn').classList.remove('hidden');showModal(seg);fireConfetti()}
+    else{btn.disabled=false;btn.textContent=`⚽ SPIN (${spinCount}/3)`;showResult(seg,false)}
+  },5200);
+}
+function reset(){
+  spinCount=0;won=false;rotation=0;
+  [KEYS.spins,KEYS.won,KEYS.wonIdx,KEYS.rot].forEach(k=>localStorage.removeItem(k));
+  const el=document.getElementById('wheelEl');el.classList.remove('spinning');el.style.transform='rotate(0deg)';
+  document.getElementById('spinBtn').disabled=false;document.getElementById('spinBtn').textContent='⚽ SPIN (0/3)';
+  document.getElementById('spinResult').classList.add('hidden');document.getElementById('resetBtn').classList.add('hidden');
+  document.getElementById('modal').classList.add('hidden');updateDots();
+}
+function restoreGame(){
+  buildWheel();spinCount=parseInt(load(KEYS.spins)||'0');rotation=parseFloat(load(KEYS.rot)||'0');won=load(KEYS.won)==='true';updateDots();
+  const el=document.getElementById('wheelEl');el.style.transition='none';el.style.transform=`rotate(${rotation}deg)`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.transition=''}));
+  if(won){const idx=parseInt(load(KEYS.wonIdx)||'0');const seg=SEG[idx];document.getElementById('spinBtn').disabled=true;document.getElementById('spinBtn').textContent='🏆 YOU WON!';document.getElementById('resetBtn').classList.remove('hidden');showResult(seg,true);showModal(seg)}
+  else if(spinCount>0){document.getElementById('spinBtn').textContent=`⚽ SPIN (${spinCount}/3)`}
+}
+
+// ── CLAIM ──
+function showClaimBanner(seg){
+  if(!seg)return;
+  const b=document.getElementById('claimBanner');
+  document.getElementById('cpbImg').src=seg.img||'';document.getElementById('cpbName').textContent=seg.label;
+  const sub=document.getElementById('cpbSub');sub.textContent=seg.sub||'';sub.style.display=seg.sub?'block':'none';b.style.display='flex';
+}
+let claimInited=false;
+function initClaim(){
+  if(claimInited)return;claimInited=true;
+  const text1='%F0%9F%8F%86%20WORLD%20CUP%202026%20%E2%80%93%20*SPIN%20%26%20WIN*%0A%0A%F0%9F%92%B0%20I%20just%20WON%20BIG%20in%20the%20FIFA%20World%20Cup%202026%20Official%20Giveaway%21%0A%0A%F0%9F%8E%AF%20Spin%203%20times%20%26%20win%20up%20to%20%E2%82%A6500%2C000%20CASH%2C%20iPhone%2017%20Pro%20Max%2C%20%26%20more%21%0A%0A%E2%9C%85%20100%25%20FREE%0A%E2%9C%85%20LIMITED%20TIME%20OFFER%0A%0A%F0%9F%94%97%20*JOIN%20THE%20CHAMPIONSHIP*%0A%F0%9F%91%87%F0%9F%91%87%F0%9F%91%87%F0%9F%91%87%F0%9F%91%87%F0%9F%91%87%0A%0Ahttps://spin-and-win.scoreupgrder.shop/wc2026spin';
+  const abcde='https://ptakeemsaifegro.net/4/9075330';
+  const shareUrl='whatsapp://send?text='+text1;
+  const err='Something is wrong!\nPosts not calculated. You may have shared with the same person more than once.';
+  let w=parseInt(load(KEYS.claim)||'0');
+  document.getElementById('tfFill').style.width=w+'%';document.getElementById('tfPct').textContent=w+'%';
+  if(w>=98){document.getElementById('tfShare').style.display='none';document.getElementById('tfClaim').style.display='block';return}
+  document.getElementById('tfWhatsapp').addEventListener('click',function(){
+    window.location.href=shareUrl;
+    if(w===0)w+=50;else if(w===50){alert(err);w+=15}else if(w===65)w+=5;else if(w===70){alert(err);w+=10}
+    else if(w===80){alert(err);w+=5}else if(w===85)w+=2;else if(w===87)w+=1;else if(w===88)w+=2;
+    else if(w===90)w+=1;else if(w===91)w+=1;else if(w===92)w+=1;else if(w===93)w+=1;
+    else if(w===94)w+=1;else if(w===95)w+=1;else if(w===96)w+=2;
+    else{document.getElementById('tfShare').style.display='none';document.getElementById('tfClaim').style.display='block'}
+    save(KEYS.claim,w);
+    setTimeout(()=>{document.getElementById('tfFill').style.width=w+'%';document.getElementById('tfPct').textContent=w+'%'},2000);
+  });
+  document.getElementById('tfOffer').addEventListener('click',()=>window.open(abcde,'_blank'));
+}
+
+// ── BOOT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  buildPrizeGrid();
+  document.getElementById('spinBtn').addEventListener('click',spin);
+  document.getElementById('resetBtn').addEventListener('click',reset);
+  document.getElementById('modalReset').addEventListener('click',reset);
+  document.getElementById('claimBtn').addEventListener('click',()=>{
+    const idx=parseInt(load(KEYS.wonIdx)||'0');showScreen('claim');showClaimBanner(SEG[idx]);initClaim();
+  });
+  if(checkExp()){showScreen('quiz');restoreQuiz(1);return}
+  const sc=load(KEYS.screen)||'quiz';
+  if(sc==='claim'){showScreen('claim');showClaimBanner(SEG[parseInt(load(KEYS.wonIdx)||'0')]);initClaim()}
+  else if(sc==='game'){showScreen('game');restoreGame()}
+  else{showScreen('quiz');restoreQuiz(parseInt(load(KEYS.step)||'1'))}
+});
+</script>
+</body>
+</html>
 
